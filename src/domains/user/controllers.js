@@ -1,38 +1,38 @@
-require("dotenv").config();
-const User = require("./model");
-const jwt = require("jsonwebtoken");
-const nodemailer = require("nodemailer");
-const _ = require("lodash");
+require('dotenv').config();
+const User = require('./model');
+const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
+const _ = require('lodash');
 
 // handle errors
 const handleErrors = (err) => {
   console.log(err.message, err.code);
-  let errors = { email: "", password: "", account: "" };
+  let errors = { email: '', password: '', account: '' };
 
   // incorrect email
-  if (err.message === "incorrect email") {
-    errors.email = "That email is not registered";
+  if (err.message === 'incorrect email') {
+    errors.email = 'That email is not registered';
   }
 
   // incorrect password
-  if (err.message === "incorrect password") {
-    errors.password = "That password is incorrect";
+  if (err.message === 'incorrect password') {
+    errors.password = 'That password is incorrect';
   }
 
   // duplicate email error
   if (err.code === 11000) {
-    if (err.keyPattern.email) errors.email = "that email is already registered";
+    if (err.keyPattern.email) errors.email = 'that email is already registered';
     // if (err.keyPattern.phone) errors.phone = "that phone is already registered";
     return errors;
   }
 
-  if (err.message.includes("read properties of null")) {
-    errors.account = "Account dont exist!";
+  if (err.message.includes('read properties of null')) {
+    errors.account = 'Account dont exist!';
     return errors;
   }
 
   // validation errors
-  if (err.message.includes("user validation failed")) {
+  if (err.message.includes('user validation failed')) {
     // console.log(err);
     Object.values(err.errors).forEach(({ properties }) => {
       errors[properties.path] = properties.message;
@@ -43,11 +43,11 @@ const handleErrors = (err) => {
 };
 
 const allowedFields = [
-  "_id",
-  "email",
-  "first_name",
-  "last_name",
-  "paymentStatus",
+  '_id',
+  'email',
+  'first_name',
+  'last_name',
+  'paymentStatus',
 ];
 
 const handleReturnValues = (obj) => {
@@ -67,8 +67,8 @@ const createToken = (id, age = maxAge) => {
 
 function createVerifCode(length) {
   const characters =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  return _.times(length, () => _.sample(characters)).join("");
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  return _.times(length, () => _.sample(characters)).join('');
 }
 
 module.exports.isJWTTokenValid = async (req, res) => {
@@ -115,7 +115,7 @@ module.exports.signup_post = async (req, res) => {
     sendVerificationEmail(user.email, verifCode);
 
     res.status(201).json({
-      message: "Verification code sent",
+      message: 'Verification code sent',
     });
   } catch (err) {
     const errors = handleErrors(err);
@@ -131,7 +131,7 @@ module.exports.resendVerifivationCode = async (req, res) => {
 
     if (user.verification) {
       res.status(201).json({
-        message: "User already verified",
+        message: 'User already verified',
       });
       return;
     }
@@ -144,7 +144,7 @@ module.exports.resendVerifivationCode = async (req, res) => {
     sendVerificationEmail(user.email, verifCode);
 
     res.status(201).json({
-      message: "Verification code resent",
+      message: 'Verification code resent',
     });
   } catch (err) {
     const errors = handleErrors(err);
@@ -159,7 +159,7 @@ module.exports.signupWithGoogle_post = async (req, res) => {
     const authData = jwt.decode(accessKey);
     const user = new User({
       first_name: authData.given_name,
-      last_name: authData.family_name || "",
+      last_name: authData.family_name || '',
       email: authData.email,
       verification: true,
       password: `${authData.email}_${authData.given_name}`,
@@ -169,10 +169,10 @@ module.exports.signupWithGoogle_post = async (req, res) => {
     await user.save();
 
     const token = createToken(user._id);
-    res.cookie("jwt", token, {
+    res.cookie('jwt', token, {
       secure: true,
       httpOnly: true,
-      sameSite: "None",
+      sameSite: 'None',
       maxAge: maxAge * 1000,
     });
 
@@ -193,10 +193,10 @@ module.exports.loginWithGoogle_post = async (req, res) => {
     // if (user) throw new Error("Account dont exist");
 
     const token = createToken(user._id);
-    res.cookie("jwt", token, {
+    res.cookie('jwt', token, {
       secure: true,
       httpOnly: true,
-      sameSite: "None",
+      sameSite: 'None',
       maxAge: maxAge * 1000,
     });
 
@@ -213,10 +213,10 @@ module.exports.login_post = async (req, res) => {
     const user = await User.login(email, password);
     const token = createToken(user._id);
 
-    res.cookie("jwt", token, {
+    res.cookie('jwt', token, {
       secure: true,
       httpOnly: true,
-      sameSite: "None",
+      sameSite: 'None',
       maxAge: maxAge * 1000,
     });
 
@@ -228,13 +228,13 @@ module.exports.login_post = async (req, res) => {
 };
 
 module.exports.logout_get = (req, res) => {
-  res.cookie("jwt", "", {
+  res.cookie('jwt', '', {
     secure: true,
     httpOnly: true,
-    sameSite: "None",
+    sameSite: 'None',
     maxAge: 1,
   });
-  res.status(200).json({ message: "logout" });
+  res.status(200).json({ message: 'logout' });
 };
 
 module.exports.verify = async (req, res) => {
@@ -244,34 +244,34 @@ module.exports.verify = async (req, res) => {
     const user = await User.findOne({ email: email });
 
     if (user.verificationCode !== code) {
-      return res.status(404).json({ message: "Invalid code" });
+      return res.status(404).json({ message: 'Invalid code' });
     }
 
     user.verification = true;
-    user.verificationCode = "";
+    user.verificationCode = '';
     await user.save();
 
     const token = createToken(user._id);
-    res.cookie("jwt", token, {
+    res.cookie('jwt', token, {
       secure: true,
       httpOnly: true,
-      sameSite: "None",
+      sameSite: 'None',
       maxAge: maxAge * 1000,
     });
 
     res.json({
-      message: "Email verified successfully",
+      message: 'Email verified successfully',
       user: handleReturnValues(user),
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
 const sendVerificationEmail = (email, code) => {
   const transporter = nodemailer.createTransport({
-    service: "gmail",
+    service: 'gmail',
     auth: {
       user: process.env.GMAIL_ADDRESS,
       pass: process.env.GMAIL_PASSWORD,
@@ -281,7 +281,7 @@ const sendVerificationEmail = (email, code) => {
   const mailOptions = {
     from: process.env.GMAIL_ADDRESS,
     to: email,
-    subject: "Email Verification",
+    subject: 'Email Verification',
     html: `
     <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5;">
       <h2 style="color: #212121;">Welcome to WooHoo!</h2>
@@ -294,7 +294,7 @@ const sendVerificationEmail = (email, code) => {
     if (error) {
       console.error(error);
     } else {
-      console.log("Verification Email sent: " + info.response);
+      console.log('Verification Email sent: ' + info.response);
     }
   });
 };
@@ -303,7 +303,7 @@ const sendResetPasswordEmail = (email, token) => {
   const resetLink = `${process.env.BASE_URL}/reset-password/${token}`;
 
   const transporter = nodemailer.createTransport({
-    service: "gmail",
+    service: 'gmail',
     auth: {
       user: process.env.GMAIL_ADDRESS,
       pass: process.env.GMAIL_PASSWORD,
@@ -313,7 +313,7 @@ const sendResetPasswordEmail = (email, token) => {
   const mailOptions = {
     from: process.env.GMAIL_ADDRESS,
     to: email,
-    subject: "Reset Password",
+    subject: 'Reset Password',
     html: `
     <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5;">
       <h2 style="color: #212121;">Account Recovery - Reset Your Password</h2>
@@ -334,7 +334,7 @@ const sendResetPasswordEmail = (email, token) => {
     if (error) {
       console.error(error);
     } else {
-      console.log("Reset Password Email sent: " + info.response);
+      console.log('Reset Password Email sent: ' + info.response);
     }
   });
 };
@@ -346,15 +346,15 @@ module.exports.forgotPassLetter_post = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      throw Error("Invalid email");
+      throw Error('Invalid email');
     }
 
-    const resetToken = jwt.sign({ email: email }, secret, { expiresIn: "1h" });
+    const resetToken = jwt.sign({ email: email }, secret, { expiresIn: '1h' });
 
     sendResetPasswordEmail(email, resetToken);
 
     res.status(200).json({
-      message: "Reset password email sent",
+      message: 'Reset password email sent',
     });
   } catch (err) {
     console.error(err);
@@ -379,14 +379,14 @@ module.exports.forgotPassReset_post = async (req, res) => {
           user.password = newPassword;
 
           await user.save();
-          res.status(200).json({ data: "Password changed successfully" });
+          res.status(200).json({ data: 'Password changed successfully' });
         } else {
-          throw Error("Incorrect password");
+          throw Error('Incorrect password');
         }
       }
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };

@@ -1,6 +1,6 @@
-const nodemailer = require("nodemailer");
-const fs = require("fs");
-require("dotenv").config();
+const nodemailer = require('nodemailer');
+const fs = require('fs');
+require('dotenv').config();
 
 function convertToUSD(price) {
   return price / 100;
@@ -12,15 +12,15 @@ function sendEmail(emailOptions, file) {
   let mailConfig;
 
   function generateMailConfig(name, email, description, file, type, items) {
-    let subject = "";
-    let title = "";
+    let subject = '';
+    let title = '';
 
-    if (type === "application") {
-      subject = "New Order Request";
-      title = "You have received a new request";
-    } else if (type === "purchase") {
-      subject = "New Purchase";
-      title = "You have received a new purchase";
+    if (type === 'application') {
+      subject = 'New Order Request';
+      title = 'You have received a new request';
+    } else if (type === 'purchase') {
+      subject = 'New Purchase';
+      title = 'You have received a new purchase';
     }
 
     let htmlContent = `<!DOCTYPE html>
@@ -38,12 +38,12 @@ function sendEmail(emailOptions, file) {
           <p><strong>Name:</strong> ${name}</p>
           <p><strong>Email:</strong> ${email}</p>
           ${
-            description
-              ? `<p><strong>Project Description:</strong> ${description}</p>`
-              : ""
-          }`;
+  description
+    ? `<p><strong>Project Description:</strong> ${description}</p>`
+    : ''
+}`;
 
-    if (type === "purchase" && items && items.length > 0) {
+    if (type === 'purchase' && items && items.length > 0) {
       const itemsHTML = items
         .map(
           (item) => `
@@ -53,7 +53,7 @@ function sendEmail(emailOptions, file) {
             </tr>
           `
         )
-        .join("");
+        .join('');
 
       const totalPrice = items.reduce(
         (total, item) => total + convertToUSD(item.amount_total),
@@ -112,7 +112,7 @@ function sendEmail(emailOptions, file) {
   );
 
   const transporter = nodemailer.createTransport({
-    service: "gmail",
+    service: 'gmail',
     auth: {
       user: process.env.GMAIL_ADDRESS,
       pass: process.env.GMAIL_PASSWORD,
@@ -120,18 +120,18 @@ function sendEmail(emailOptions, file) {
   });
 
   return new Promise((resolve, reject) => {
-    transporter.sendMail(mailConfig, (error, info) => {
+    transporter.sendMail(mailConfig, (error) => {
       if (error) {
         console.log(error);
         if (filePath) {
           fs.unlinkSync(filePath);
         }
-        return reject({ message: `An error has occurred` });
+        return reject({ message: 'An error has occurred' });
       }
       if (filePath) {
         fs.unlinkSync(filePath);
       }
-      return resolve({ message: "Email sent successfully" });
+      return resolve({ message: 'Email sent successfully' });
     });
   });
 }
